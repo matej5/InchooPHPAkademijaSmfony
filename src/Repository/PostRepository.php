@@ -26,4 +26,16 @@ class PostRepository extends ServiceEntityRepository
             ->getResult();
     }
 
+
+    public function getByTag($tag)
+    {
+        return $this->createQueryBuilder('a')
+            ->innerJoin('App\Entity\Tag','b','WITH','a.id = b.post')
+            ->where('b.content = :tag')
+            ->setParameter('tag', $tag)
+            ->setMaxResults(100)
+            ->orderBy('a.createdAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
 }

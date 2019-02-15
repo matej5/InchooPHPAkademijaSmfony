@@ -2,13 +2,15 @@
 
 {% block body %}
 
+    {{ form(formSearch) }}
     {% if is_granted('ROLE_USER') %}
         {{ form_start(form) }}
+        {{ form_errors(form, {'attr': {'novalidate': 'novalidate'}}) }}
         {{ form_row(form.content) }}
         <ul class="tags" data-prototype="{{ form_widget(form.tags.vars.prototype)|e('html_attr') }}">
             {# iterate over each existing tag and render its only field: name #}
             {% for tag in form.tags %}
-                <li>{{ form_row(tag.content) }}</li>
+                <li>{{ form_row(tag.content, {'attr': {'novalidate': 'novalidate'}}) }}</li>
             {% endfor %}
         </ul>
         <button type="submit" class="btn btn-primary" formnovalidate>Save</button>

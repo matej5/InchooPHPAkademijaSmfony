@@ -9,7 +9,6 @@ use App\Form\CommentFormType;
 use App\Form\PostFormType;
 use App\Repository\PostLikeRepository;
 use App\Repository\PostRepository;
-use App\Repository\TagRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\IsGranted;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Security;
@@ -18,6 +17,8 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Component\Form\Extension\Core\Type\TextareaType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
 class PostController extends AbstractController
 {
@@ -42,11 +43,25 @@ class PostController extends AbstractController
             return $this->redirectToRoute('post_index');
         }
 
-        $posts = $postRepository->getAllInLastWeek();
+        $formSearch = $this->createFormBuilder(null)
+            ->add('query', TextareaType::class)
+            ->add('search', SubmitType::class, [
+                'attr' => [
+                    'class' => 'btn btn-primary'
+                ]
+            ])->getForm();
 
+        $formSearch->handleRequest($request);
+        if($formSearch->isSubmitted() && $formSearch->isValid()) {
+            $postsFind = $formSearch->getData();
+            $posts = $postRepository->getByTag($postsFind['query']);
+        } else {
+            $posts = $postRepository->getAllInLastWeek();
+        }
         return $this->render('post/index.html.twig', [
             'form' => $form->createView(),
-            'posts' => $posts
+            'posts' => $posts,
+            'formSearch' => $formSearch->createView()
         ]);
     }
 
@@ -125,55 +140,5 @@ class PostController extends AbstractController
         return new JsonResponse([
             'likes' => $post->getLikesCount()
         ]);
-    }
-
-    /**
-     * @param $id
-     * @param Request $request
-     * @param EntityManagerInterface $entityManager
-     * @return mixed
-     */
-    public function edit($id, Request $request, EntityManagerInterface $entityManager)
-    {
-        if (null === $post = $entityManager->getRepository(Post::class)->find($id)) {
-            throw $this->createNotFoundException('No task found for id '.$id);
-        }
-
-        $originalTags = new ArrayCollection();
-
-        // Create an ArrayCollection of the current Tag objects in the database
-        foreach ($post->getTags() as $tag) {
-            $originalTags->add($tag);
-        }
-
-        $editForm = $this->createForm(TaskType::class, $post);
-
-        $editForm->handleRequest($request);
-
-        if ($editForm->isSubmitted() && $editForm->isValid()) {
-            // remove the relationship between the tag and the Task
-            foreach ($originalTags as $tag) {
-                if (false === $post->getTags()->contains($tag)) {
-                    // remove the Task from the Tag
-                    $tag->getTasks()->removeElement($post);
-
-                    // if it was a many-to-one relationship, remove the relationship like this
-                    // $tag->setTask(null);
-
-                    $entityManager->persist($tag);
-
-                    // if you wanted to delete the Tag entirely, you can also do that
-                    // $entityManager->remove($tag);
-                }
-            }
-
-            $entityManager->persist($post);
-            $entityManager->flush();
-
-            // redirect back to some edit page
-            return $this->redirectToRoute('task_edit', ['id' => $id]);
-        }
-
-        // render some form template
     }
 }
