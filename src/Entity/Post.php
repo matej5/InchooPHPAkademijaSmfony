@@ -24,6 +24,8 @@ class Post
     {
         $this->comments = new ArrayCollection();
         $this->likes = new ArrayCollection();
+        $this->tags = new ArrayCollection();
+        $this->tag = new ArrayCollection();
     }
 
     /**
@@ -60,6 +62,11 @@ class Post
      * @ORM\OneToMany(targetEntity="App\Entity\PostLike", mappedBy="post", cascade={"persist", "remove"}, orphanRemoval=true)
      */
     private $likes;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Tag", mappedBy="post")
+     */
+    private $tag;
 
     /**
      * @return Collection|Comment[]
@@ -208,5 +215,36 @@ class Post
     public function setUser($user)
     {
         $this->user = $user;
+    }
+
+    /**
+     * @return Collection|Tag[]
+     */
+    public function getTag(): Collection
+    {
+        return $this->tag;
+    }
+
+    public function addTag(Tag $tag): self
+    {
+        if (!$this->tag->contains($tag)) {
+            $this->tag[] = $tag;
+            $tag->setPost($this);
+        }
+
+        return $this;
+    }
+
+    public function removeTag(Tag $tag): self
+    {
+        if ($this->tag->contains($tag)) {
+            $this->tag->removeElement($tag);
+            // set the owning side to null (unless already changed)
+            if ($tag->getPost() === $this) {
+                $tag->setPost(null);
+            }
+        }
+
+        return $this;
     }
 }

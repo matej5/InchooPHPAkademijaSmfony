@@ -4,8 +4,14 @@
 
     {% if is_granted('ROLE_USER') %}
         {{ form_start(form) }}
-            {{ form_row(form.content) }}
-            <button type="submit" class="btn btn-primary" formnovalidate>Save</button>
+        {{ form_row(form.content) }}
+        <ul class="tags" data-prototype="{{ form_widget(form.tags.vars.prototype)|e('html_attr') }}">
+            {# iterate over each existing tag and render its only field: name #}
+            {% for tag in form.tags %}
+                <li>{{ form_row(tag.content) }}</li>
+            {% endfor %}
+        </ul>
+        <button type="submit" class="btn btn-primary" formnovalidate>Save</button>
         {{ form_end(form) }}
     {% endif %}
 
@@ -22,4 +28,9 @@
             </div>
         </div>
     {% endfor %}
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script src="{{ asset('js/tag.js') }}"></script>
 {% endblock %}
