@@ -36,7 +36,7 @@ class PostController extends AbstractController
             /** @var Post $post */
             $post = $form->getData();
             $post->setUser($this->getUser());
-            $entityManager->merge($post);
+            $entityManager->persist($post);
             $entityManager->flush();
             $this->addFlash('success', 'New post created!');
             return $this->redirectToRoute('post_index');

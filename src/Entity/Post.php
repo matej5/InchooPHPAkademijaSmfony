@@ -64,7 +64,7 @@ class Post
     private $likes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Tag", mappedBy="post")
+     * @ORM\OneToMany(targetEntity="App\Entity\Tag", mappedBy="post", cascade={"persist"})
      */
     private $tag;
 
@@ -230,6 +230,8 @@ class Post
         if (!$this->tag->contains($tag)) {
             $this->tag[] = $tag;
             $tag->setPost($this);
+
+            $this->tags->add($tag);
         }
 
         return $this;
